@@ -1,4 +1,4 @@
-package com.example.webservice.model;
+package com.example.webservice.config;
 import com.example.webservice.security.AESUtil;
 import lombok.Data;
 

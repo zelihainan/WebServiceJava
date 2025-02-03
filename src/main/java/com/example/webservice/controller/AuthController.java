@@ -1,6 +1,6 @@
 package com.example.webservice.controller;
 
-import com.example.webservice.model.DatabaseConfig;
+import com.example.webservice.config.DatabaseConfig;
 import com.example.webservice.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
