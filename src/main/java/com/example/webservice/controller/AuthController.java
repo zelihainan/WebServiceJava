@@ -16,13 +16,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public String login(@RequestBody DatabaseConfig config, HttpServletRequest request) throws Exception {
-        // Kullanıcının IP adresini al
         String ipAddress = request.getRemoteAddr();
-        if (ipAddress.equals("0:0:0:0:0:0:0:1")) { // Eğer localhost ise gerçek IP’yi al
+        if (ipAddress.equals("0:0:0:0:0:0:0:1")) {
             ipAddress = InetAddress.getLocalHost().getHostAddress();
         }
 
-        // JWT token oluştur
-        return JwtUtil.generateToken(config.getUsername(), ipAddress);
+        return JwtUtil.generateToken(config.getUsername(), ipAddress, config);
     }
 }

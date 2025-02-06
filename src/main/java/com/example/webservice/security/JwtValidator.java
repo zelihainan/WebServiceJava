@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 
 public class JwtValidator {
-    private static final String SECRET_KEY = "mySecretKeyForJWT";
+    private static final String SECRET_KEY = "mySuperSecretKey";
 
     public static boolean isTokenValid(String token, HttpServletRequest request) {
         try {
