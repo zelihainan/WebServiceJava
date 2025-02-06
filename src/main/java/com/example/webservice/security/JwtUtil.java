@@ -1,71 +1,59 @@
 package com.example.webservice.security;
 
 import com.example.webservice.config.DatabaseConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class JwtUtil {
-    private static final String SECRET_KEY = "mySuperSecretKey";
-    private static final byte[] SECRET_KEY_BYTES = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
 
-    public static String generateToken(String username, String ip, DatabaseConfig databaseConfig) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return Jwts.builder()
-                    .setSubject(username)
-                    .claim("ip", ip)
-                    .claim("database", objectMapper.convertValue(databaseConfig, Map.class))
-                    .setIssuedAt(new Date())
-                    .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-                    .signWith(SignatureAlgorithm.HS256, SECRET_KEY_BYTES)
-                    .compact();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
+
+    @Value("${jwt.expiration}")
+    private long EXPIRATION_TIME;
+
+    public String generateToken(String username, String ip, String userAgent, DatabaseConfig databaseConfig) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("ip", ip);
+        claims.put("userAgent", userAgent);
+
+        Map<String, Object> databaseClaims = new HashMap<>();
+        databaseClaims.put("server", databaseConfig.getServer());
+        databaseClaims.put("databaseName", databaseConfig.getDatabaseName());
+        databaseClaims.put("username", databaseConfig.getUsername());
+        databaseClaims.put("password", databaseConfig.getPassword());
+
+        claims.put("database", databaseClaims);
+
+        return Jwts.builder()
+                .setSubject(username)
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY.getBytes(StandardCharsets.UTF_8))
+                .compact();
     }
 
-    public static Claims decodeToken(String token) {
+    public Claims decodeToken(String token) {
         try {
-            return Jwts.parser()
-                    .setSigningKey(SECRET_KEY_BYTES)
+            Claims claims = Jwts.parser()
+                    .setSigningKey(SECRET_KEY.getBytes(StandardCharsets.UTF_8))
                     .parseClaimsJws(token)
                     .getBody();
+
+            return claims;
+        } catch (ExpiredJwtException e) {
+        } catch (SignatureException e) {
+        } catch (MalformedJwtException e) {
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
-    }
-
-    public static DatabaseConfig getDatabaseConfigFromToken(String token) {
-        try {
-            token = token.replace("Bearer ", "").trim();
-
-            Claims claims = decodeToken(token);
-            if (claims == null) {
-                return null;
-            }
-
-            Object databaseObject = claims.get("database");
-            if (databaseObject == null) {
-                return null;
-            }
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            if (databaseObject instanceof String) {
-                databaseObject = objectMapper.readValue((String) databaseObject, Map.class);
-            }
-
-            return objectMapper.convertValue(databaseObject, DatabaseConfig.class);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return null;
     }
 }

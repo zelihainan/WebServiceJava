@@ -1,30 +1,40 @@
 package com.example.webservice.security;
+
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Component;
+
 import java.net.InetAddress;
 
+@Component
 public class JwtValidator {
-    private static final String SECRET_KEY = "mySuperSecretKey";
 
-    public static boolean isTokenValid(String token, HttpServletRequest request) {
+    private final JwtUtil jwtUtil;
+
+    public JwtValidator(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
+    public boolean isTokenValid(String token, HttpServletRequest request) {
         try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(SECRET_KEY.getBytes())
-                    .parseClaimsJws(token)
-                    .getBody();
+            if (token.startsWith("Bearer ")) {
+                token = token.replace("Bearer ", "").trim();
+            }
 
-            String tokenIp = (String) claims.get("ip");
+            Claims claims = jwtUtil.decodeToken(token);
+            String tokenIp = claims.get("ip", String.class);
+            String tokenUserAgent = claims.get("userAgent", String.class);
 
             String currentIp = request.getRemoteAddr();
-            if (currentIp.equals("0:0:0:0:0:0:0:1")) { // Eğer localhost ise
+            if (currentIp.equals("0:0:0:0:0:0:0:1")) {
                 currentIp = InetAddress.getLocalHost().getHostAddress();
             }
 
-            return tokenIp.equals(currentIp);
+            String requestUserAgent = request.getHeader("User-Agent");
+
+            return tokenIp.equals(currentIp) && tokenUserAgent.equals(requestUserAgent);
         } catch (Exception e) {
             return false;
         }
     }
 }
-
