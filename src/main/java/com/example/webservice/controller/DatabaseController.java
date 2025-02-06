@@ -13,13 +13,10 @@ public class DatabaseController {
 
     @GetMapping("/test")
     public String testDatabaseConnection(@RequestHeader("Authorization") String token, HttpServletRequest request) {
-        System.out.println("🔑 Gelen Token: " + token);
-
-        // "Bearer " ön ekini kaldır
         token = token.replace("Bearer ", "").trim();
 
         boolean isConnected = DatabaseConnectionService.testDatabaseConnection(token);
 
-        return isConnected ? "✅ Veritabanı bağlantısı başarılı" : "❌ Bağlantı başarısız";
+        return isConnected ? "Database connection successful" : "Database connection failed";
     }
 }

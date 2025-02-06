@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.net.InetAddress;
 
 @RestController
@@ -20,7 +19,6 @@ public class AuthController {
         if (ipAddress.equals("0:0:0:0:0:0:0:1")) {
             ipAddress = InetAddress.getLocalHost().getHostAddress();
         }
-
         return JwtUtil.generateToken(config.getUsername(), ipAddress, config);
     }
 }

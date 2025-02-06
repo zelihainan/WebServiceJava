@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-
 import javax.sql.DataSource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,10 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DataSourceManager {
     private static final Map<String, DataSource> dataSourceCache = new ConcurrentHashMap<>();
 
-    @Primary // Spring Boot'a bunun ana DataSource olduğunu söylüyoruz
+    @Primary
     @Bean
     public DataSource defaultDataSource() {
-        return null; // Varsayılan bir veritabanı istemediğimizi belirtiyoruz.
+        return null;
     }
 
     public static DataSource createDataSource(String url, String username, String password, String databaseName) {

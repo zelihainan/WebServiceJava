@@ -14,11 +14,9 @@ public class UserController {
 
     @GetMapping("/profile")
     public String getUserProfile(@RequestHeader("Authorization") String token, HttpServletRequest request) {
-        // Kullanıcının token’ı ve IP'sini doğrula
         if (!JwtValidator.isTokenValid(token, request)) {
             return "Unauthorized: IP address mismatch. Please log in again.";
         }
-
         return "User profile data (only accessible with valid token and same IP)";
     }
 }

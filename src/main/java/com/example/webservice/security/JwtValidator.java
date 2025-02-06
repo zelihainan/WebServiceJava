@@ -2,8 +2,6 @@ package com.example.webservice.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
-
-
 import java.net.InetAddress;
 
 public class JwtValidator {
@@ -16,16 +14,13 @@ public class JwtValidator {
                     .parseClaimsJws(token)
                     .getBody();
 
-            // Token içindeki IP adresini al
             String tokenIp = (String) claims.get("ip");
 
-            // Kullanıcının mevcut IP adresini al
             String currentIp = request.getRemoteAddr();
             if (currentIp.equals("0:0:0:0:0:0:0:1")) { // Eğer localhost ise
                 currentIp = InetAddress.getLocalHost().getHostAddress();
             }
 
-            // Eğer token içindeki IP ile mevcut IP eşleşmiyorsa, kullanıcı tekrar giriş yapmalı
             return tokenIp.equals(currentIp);
         } catch (Exception e) {
             return false;
