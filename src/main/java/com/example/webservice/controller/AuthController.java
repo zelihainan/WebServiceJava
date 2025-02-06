@@ -2,6 +2,7 @@ package com.example.webservice.controller;
 
 import com.example.webservice.config.DatabaseConfig;
 import com.example.webservice.security.JwtUtil;
+import com.example.webservice.service.DatabaseConnectionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +13,11 @@ import java.net.InetAddress;
 public class AuthController {
 
     private final JwtUtil jwtUtil;
+    private final DatabaseConnectionService databaseConnectionService;
 
-    public AuthController(JwtUtil jwtUtil) {
+    public AuthController(JwtUtil jwtUtil, DatabaseConnectionService databaseConnectionService) {
         this.jwtUtil = jwtUtil;
+        this.databaseConnectionService = databaseConnectionService;
     }
 
     @PostMapping("/login")
@@ -29,7 +32,11 @@ public class AuthController {
         }
 
         String userAgent = request.getHeader("User-Agent");
+        String token = jwtUtil.generateToken(config.getUsername(), ipAddress, userAgent);
 
-        return jwtUtil.generateToken(config.getUsername(), ipAddress, userAgent, config);
+        // Kullanıcının veritabanı bilgilerini cache'e kaydet
+        databaseConnectionService.saveDatabaseConfig(token, config.getServer(), config.getDatabaseName(), config.getUsername(), config.getPassword());
+
+        return token;
     }
 }

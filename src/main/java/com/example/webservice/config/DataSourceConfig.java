@@ -2,35 +2,30 @@ package com.example.webservice.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Value;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.PropertySource;
-
 import javax.sql.DataSource;
 
 @Configuration
-@PropertySource("classpath:application.properties")
 public class DataSourceConfig {
-    @Value("${spring.datasource.url}")
-    private String dbUrl;
 
-    @Value("${spring.datasource.username}")
-    private String dbUsername;
-
-    @Value("${spring.datasource.password}")
-    private String dbPassword;
-
+    private final Dotenv dotenv = Dotenv.load();
 
     @Primary
     @Bean
     public DataSource defaultDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(dbUrl);
-        hikariConfig.setUsername(dbUsername);
-        hikariConfig.setPassword(dbPassword);
+        hikariConfig.setJdbcUrl(dotenv.get("DB_URL"));
+        hikariConfig.setUsername(dotenv.get("DB_USERNAME"));
+        hikariConfig.setPassword(dotenv.get("DB_PASSWORD"));
         hikariConfig.setMaximumPoolSize(10);
+        hikariConfig.setMinimumIdle(2);
+        hikariConfig.setIdleTimeout(30000);
+        hikariConfig.setMaxLifetime(1800000);
+        hikariConfig.setConnectionTimeout(20000);
+
         return new HikariDataSource(hikariConfig);
     }
 }

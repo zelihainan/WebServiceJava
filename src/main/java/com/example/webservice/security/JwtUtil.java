@@ -1,8 +1,7 @@
 package com.example.webservice.security;
 
-import com.example.webservice.config.DatabaseConfig;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -13,24 +12,14 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String SECRET_KEY;
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String SECRET_KEY = dotenv.get("JWT_SECRET");
+    private static final long EXPIRATION_TIME = 3600000; // 1 saat
 
-    @Value("${jwt.expiration}")
-    private long EXPIRATION_TIME;
-
-    public String generateToken(String username, String ip, String userAgent, DatabaseConfig databaseConfig) {
+    public String generateToken(String username, String ip, String userAgent) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("ip", ip);
         claims.put("userAgent", userAgent);
-
-        Map<String, Object> databaseClaims = new HashMap<>();
-        databaseClaims.put("server", databaseConfig.getServer());
-        databaseClaims.put("databaseName", databaseConfig.getDatabaseName());
-        databaseClaims.put("username", databaseConfig.getUsername());
-        databaseClaims.put("password", databaseConfig.getPassword());
-
-        claims.put("database", databaseClaims);
 
         return Jwts.builder()
                 .setSubject(username)
@@ -43,17 +32,12 @@ public class JwtUtil {
 
     public Claims decodeToken(String token) {
         try {
-            Claims claims = Jwts.parser()
+            return Jwts.parser()
                     .setSigningKey(SECRET_KEY.getBytes(StandardCharsets.UTF_8))
                     .parseClaimsJws(token)
                     .getBody();
-
-            return claims;
-        } catch (ExpiredJwtException e) {
-        } catch (SignatureException e) {
-        } catch (MalformedJwtException e) {
-        } catch (Exception e) {
+        } catch (ExpiredJwtException | SignatureException | MalformedJwtException e) {
+            return null;
         }
-        return null;
     }
 }
